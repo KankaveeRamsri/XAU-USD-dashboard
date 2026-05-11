@@ -1,4 +1,3 @@
-import { Badge } from "./Badge";
 import { MarketMetricCard } from "./MarketMetricCard";
 import { TrendBadge, VolatilityBadge, SessionBadge } from "./MarketStatusBadge";
 import type { MarketData } from "@/lib/trading/types";

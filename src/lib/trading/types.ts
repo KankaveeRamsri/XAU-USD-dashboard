@@ -1,3 +1,14 @@
+export type Timeframe = "1m" | "5m" | "15m" | "1H" | "4H" | "1D";
+
+export interface OhlcCandle {
+  time: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number;
+}
+
 export type MarketTrend = "Bullish" | "Bearish" | "Neutral";
 export type VolatilityLevel = "Low" | "Medium" | "High" | "Extreme";
 export type MarketSessionName =

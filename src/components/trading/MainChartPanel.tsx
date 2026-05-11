@@ -1,14 +1,74 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
+import { ChartToolbar } from "./ChartToolbar";
+import { useXauusdChartData } from "@/hooks/useXauusdChartData";
+import type { Timeframe } from "@/lib/trading/types";
 
-const TIMEFRAMES = ["1m", "5m", "15m", "1H", "4H", "1D"] as const;
+// Dynamic import to avoid SSR issues with lightweight-charts
+const CandlestickChart = dynamic(
+  () =>
+    import("./CandlestickChart").then((mod) => mod.CandlestickChart),
+  { ssr: false }
+);
+
+function ChartSkeleton() {
+  return (
+    <div className="flex flex-1 items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted/30 border-t-gold" />
+        <p className="text-xs text-muted">Loading chart...</p>
+      </div>
+    </div>
+  );
+}
+
+function ChartError({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <div className="flex flex-1 items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bearish-bg">
+          <svg
+            className="h-5 w-5 text-bearish"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <p className="text-sm text-bearish">{message}</p>
+        <button
+          onClick={onRetry}
+          className="rounded-lg border border-card-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/10"
+        >
+          Try Again
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function MainChartPanel() {
-  const [activeTimeframe, setActiveTimeframe] = useState<string>("1H");
+  const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>("1H");
+  const { candles, isLoading, error, lastUpdated, refreshChartData } =
+    useXauusdChartData(selectedTimeframe);
 
   return (
     <div className="flex h-full flex-col rounded-xl border border-card-border bg-card">
+      {/* Header */}
       <div className="flex items-center justify-between border-b border-card-border px-4 py-3">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-foreground">
@@ -17,99 +77,30 @@ export function MainChartPanel() {
           <span className="rounded bg-gold/10 px-1.5 py-0.5 text-[10px] font-medium text-gold">
             GOLD
           </span>
-        </div>
-        <div className="flex items-center gap-1">
-          {TIMEFRAMES.map((tf) => (
-            <button
-              key={tf}
-              onClick={() => setActiveTimeframe(tf)}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                activeTimeframe === tf
-                  ? "bg-gold/20 text-gold"
-                  : "text-muted hover:bg-muted/10 hover:text-foreground"
-              }`}
-            >
-              {tf}
-            </button>
-          ))}
+          <span className="rounded bg-muted/10 px-1.5 py-0.5 text-[10px] text-muted">
+            Mock OHLC · Phase 2
+          </span>
         </div>
       </div>
 
-      <div className="relative flex flex-1 items-center justify-center p-4 min-h-[300px] lg:min-h-[400px]">
-        {/* Grid background */}
-        <div
-          className="absolute inset-4 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+      {/* Toolbar: timeframe + refresh */}
+      <ChartToolbar
+        selectedTimeframe={selectedTimeframe}
+        onTimeframeChange={setSelectedTimeframe}
+        lastUpdated={lastUpdated}
+        isLoading={isLoading}
+        onRefresh={refreshChartData}
+      />
 
-        {/* Mock candlestick pattern */}
-        <div className="flex items-end gap-2 h-48 sm:h-56">
-          {[
-            { body: 24, wick: 40, up: true },
-            { body: 18, wick: 35, up: false },
-            { body: 30, wick: 48, up: true },
-            { body: 14, wick: 28, up: false },
-            { body: 22, wick: 38, up: true },
-            { body: 26, wick: 42, up: true },
-            { body: 16, wick: 32, up: false },
-            { body: 34, wick: 52, up: true },
-            { body: 20, wick: 36, up: true },
-            { body: 12, wick: 24, up: false },
-            { body: 28, wick: 44, up: true },
-            { body: 18, wick: 30, up: false },
-            { body: 32, wick: 50, up: true },
-            { body: 22, wick: 38, up: true },
-            { body: 16, wick: 28, up: false },
-            { body: 26, wick: 42, up: true },
-            { body: 20, wick: 34, up: true },
-            { body: 14, wick: 26, up: false },
-            { body: 36, wick: 54, up: true },
-            { body: 24, wick: 40, up: true },
-          ].map((candle, i) => (
-            <div key={i} className="flex flex-col items-center" style={{ height: candle.wick * 2.2 }}>
-              <div
-                className="w-px"
-                style={{
-                  height: `${candle.wick - candle.body / 2}px`,
-                  backgroundColor: candle.up
-                    ? "var(--bullish)"
-                    : "var(--bearish)",
-                  opacity: 0.5,
-                }}
-              />
-              <div
-                className="w-2.5 rounded-sm sm:w-3"
-                style={{
-                  height: `${candle.body}px`,
-                  backgroundColor: candle.up
-                    ? "var(--bullish)"
-                    : "var(--bearish)",
-                  opacity: 0.8,
-                }}
-              />
-              <div
-                className="w-px flex-1"
-                style={{
-                  backgroundColor: candle.up
-                    ? "var(--bullish)"
-                    : "var(--bearish)",
-                  opacity: 0.5,
-                }}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Phase notice */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-          <p className="text-xs text-muted text-center">
-            Candlestick chart integration will be added in Phase 2
-          </p>
-        </div>
+      {/* Chart area */}
+      <div className="relative flex flex-1 min-h-[300px] lg:min-h-[420px]">
+        {error ? (
+          <ChartError message={error} onRetry={refreshChartData} />
+        ) : isLoading && candles.length === 0 ? (
+          <ChartSkeleton />
+        ) : candles.length > 0 ? (
+          <CandlestickChart candles={candles} className="h-full w-full" />
+        ) : null}
       </div>
     </div>
   );
