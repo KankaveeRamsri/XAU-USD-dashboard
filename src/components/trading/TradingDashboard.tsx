@@ -1,3 +1,5 @@
+"use client";
+
 import { MarketOverview } from "./MarketOverview";
 import { MainChartPanel } from "./MainChartPanel";
 import { AIInsightPanel } from "./AIInsightPanel";
@@ -8,8 +10,8 @@ import { SessionPanel } from "./SessionPanel";
 import { SupportResistancePanel } from "./SupportResistancePanel";
 import { SentimentPanel } from "./SentimentPanel";
 import { TradeJournalPanel } from "./TradeJournalPanel";
+import { useXauusdMarketData } from "@/hooks/useXauusdMarketData";
 import {
-  mockMarketData,
   mockAIInsight,
   mockTradeSetup,
   mockNewsEvents,
@@ -20,6 +22,9 @@ import {
 } from "@/lib/trading/mock-data";
 
 export function TradingDashboard() {
+  const { data, isLoading, error, lastUpdated, refreshMarketData } =
+    useXauusdMarketData();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -46,7 +51,7 @@ export function TradingDashboard() {
               </span>
             </div>
             <div className="flex items-center gap-1.5 rounded-full bg-muted/10 px-2.5 py-1">
-              <span className="text-[10px] text-muted">Phase 0</span>
+              <span className="text-[10px] text-muted">Phase 1</span>
             </div>
           </div>
         </div>
@@ -54,7 +59,13 @@ export function TradingDashboard() {
 
       <main className="mx-auto max-w-[1600px] space-y-4 p-4 lg:p-6">
         {/* Top: Market Overview */}
-        <MarketOverview data={mockMarketData} />
+        <MarketOverview
+          data={data}
+          isLoading={isLoading}
+          error={error}
+          lastUpdated={lastUpdated}
+          onRefresh={refreshMarketData}
+        />
 
         {/* Main Grid: Chart + Sidebar */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_340px]">

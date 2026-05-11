@@ -12,18 +12,28 @@ import type {
 
 export const mockMarketData: MarketData = {
   symbol: "XAUUSD",
+  displayName: "Gold / US Dollar",
   price: 2365.42,
-  dailyChange: 19.32,
+  previousClose: 2346.18,
+  dailyChange: 19.24,
   dailyChangePercent: 0.82,
   dailyHigh: 2372.8,
   dailyLow: 2348.1,
   spread: 28,
   volatility: "High",
   currentSession: "London / New York Overlap",
+  session: "Overlap",
   trend: "Bullish",
-  open: 2346.1,
-  previousClose: 2346.1,
+  open: 2346.18,
+  updatedAt: new Date().toISOString(),
 };
+
+export function getMockXauusdMarketData(): MarketData {
+  return {
+    ...mockMarketData,
+    updatedAt: new Date().toISOString(),
+  };
+}
 
 export const mockAIInsight: AIInsight = {
   bias: "Bullish",

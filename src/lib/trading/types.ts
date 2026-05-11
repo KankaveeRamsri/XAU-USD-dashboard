@@ -1,16 +1,29 @@
+export type MarketTrend = "Bullish" | "Bearish" | "Neutral";
+export type VolatilityLevel = "Low" | "Medium" | "High" | "Extreme";
+export type MarketSessionName =
+  | "Sydney"
+  | "Tokyo"
+  | "London"
+  | "New York"
+  | "Overlap"
+  | "Closed";
+
 export interface MarketData {
   symbol: string;
+  displayName: string;
   price: number;
+  previousClose: number;
   dailyChange: number;
   dailyChangePercent: number;
   dailyHigh: number;
   dailyLow: number;
   spread: number;
-  volatility: "Low" | "Medium" | "High" | "Extreme";
+  volatility: VolatilityLevel;
   currentSession: string;
-  trend: "Bullish" | "Bearish" | "Neutral";
+  session: MarketSessionName;
+  trend: MarketTrend;
   open: number;
-  previousClose: number;
+  updatedAt: string;
 }
 
 export interface AIInsight {
